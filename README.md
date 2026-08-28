@@ -143,22 +143,40 @@ export API_AUTH_TOKEN="$(openssl rand -hex 32)"
 
 ### AI
 
-Summaries use a **local** model via [Ollama](https://ollama.com), so ticket text and code never
-leave the machine.
+Summaries default to a **local** model via [Ollama](https://ollama.com), so ticket text and code
+never leave the machine.
 
 ```bash
 ollama serve &
-ollama pull llama3.2          # or a larger model; see below
+ollama pull qwen2.5:7b-instruct
 export AI_ENABLED=true
 ```
 
-Model choice matters more than usual here. A 3B model produces usable but flawed output — in
-testing it described a merged pull request as still open. The validator catches and annotates such
-contradictions, but a larger model avoids them. If you have the disk and patience, `qwen2.5:7b` or
-`llama3.1:8b` are markedly better at this task. Expect several minutes per ticket on CPU either way.
+The provider is configuration, not code:
+
+| `AI_PROVIDER` | Where the prompt goes | Needs |
+|---|---|---|
+| `ollama` (default) | this machine | nothing |
+| `anthropic` | Anthropic's API | `AI_API_KEY` |
+| `openai` | OpenAI, or any OpenAI-compatible endpoint at `AI_BASE_URL` | `AI_API_KEY` |
+
+A hosted provider sends your employer's ticket text, branch names and file paths to a third party.
+Read [docs/SECURITY.md](docs/SECURITY.md) and confirm you are permitted to before switching. Startup
+logs a warning naming the provider whenever reasoning happens off-machine, and refuses to start a
+hosted provider with no API key rather than quietly falling back.
+
+Model choice matters more than usual. A 3B model produces usable but flawed output — in testing it
+described a merged pull request as still open, and reported the agent's own missing GitHub token as
+a blocker on the developer's work. Both are handled now (the validator annotates the first, the
+prompt renderer prevents the second), but a larger model needs less rescuing.
+
+Measured on a 2018 Intel i7 with no GPU: **`qwen2.5:7b-instruct` takes ~11-12 minutes per ticket**,
+`llama3.2:3b` about 5. A four-ticket day is therefore most of an hour, which is why the n8n preview
+step allows 90 minutes. Latency is cheap when nobody is waiting — the cron runs at 07:00 and the
+draft is there when you start work. A hosted provider returns in seconds.
 
 Set `AI_ENABLED=false` to skip the model entirely and get a deterministic summary built from the
-evidence.
+evidence. It is duller, always available, and never wrong about the evidence.
 
 GitHub needs `GITHUB_TOKEN` and `GITHUB_ORG`. A fine-grained token with read-only Contents,
 Metadata and Pull requests is enough — see [docs/INTEGRATION_PERMISSIONS.md](docs/INTEGRATION_PERMISSIONS.md).
@@ -168,6 +186,45 @@ Run the tests — they use recorded fixtures and never contact a real Jira insta
 ```bash
 ./gradlew test
 ```
+
+### Restarting after a reboot
+
+Nothing persists in the running processes, so a restart loses no state: the repository is on disk,
+and n8n keeps its workflows and credentials in a Docker **volume**, which survives both a reboot and
+`docker compose down`.
+
+```bash
+cd path/to/engineering-agent
+open -a OrbStack                     # or Docker Desktop; wait for the daemon
+set -a && source .env && set +a
+docker compose up -d n8n
+./gradlew bootRun
+```
+
+Two things catch people out:
+
+**`source .env` must happen in the same shell as `bootRun`.** Exported variables do not survive
+Ctrl+C into a new shell, and a stale export beats the file — a variable you cleared in `.env` keeps
+its old value in a shell that sourced the earlier version. If the service behaves as though it has
+configuration you have since changed, that is why. Open a new tab and source again.
+
+**Start the Docker daemon before `docker compose`,** not merely the desktop app. Compose also
+interpolates the whole file even when you name one service, so an empty `DATABASE_PASSWORD` fails
+`docker compose up -d n8n` with an error about `postgres`.
+
+Confirm all three layers, not just that the app started:
+
+```bash
+curl -s localhost:8080/api/health                       # jira/github/slack configured?
+docker exec engineering-agent-n8n \
+  wget -qO- "$AGENT_BASE_URL/api/health"                # can the container reach the host?
+```
+
+Ollama is only needed when `AI_ENABLED=true`; leave it stopped otherwise.
+
+A **published** workflow needs the service and Docker running at 07:00. If the laptop is asleep, the
+scheduled run fails and the workflow DMs you that it could not build the status — the error branch
+working as intended, not a fault.
 
 ## Licence
 

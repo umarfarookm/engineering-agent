@@ -92,7 +92,11 @@ Run it with **Test workflow** and watch each node:
 | `Ask me to approve` | Slack DM arrived with two buttons |
 | `Post to Slack` | Only runs after you click **Send it** |
 
-Click **Skip today** on the first run and confirm nothing is posted. Only then activate the cron.
+Click **Skip today** on the first run and confirm nothing is posted. Only then **Publish**.
+
+n8n 2.x publishes a *version*: the schedule runs the version you published, not whatever the canvas
+currently shows. Later edits stay as an unpublished draft until you publish again — so a fix you
+made this morning does not reach tomorrow's 07:00 run on its own.
 
 If `Build preview` returns 401, `API_AUTH_TOKEN` was empty when the container started: fill it in
 `.env` and `docker compose up -d n8n` to recreate. If it cannot connect at all, the service is
