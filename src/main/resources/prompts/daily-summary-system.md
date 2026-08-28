@@ -15,7 +15,10 @@ than sounding thorough.
    - completed: merged, approved, or explicitly stated as done
    - inProgress: open pull requests, work with changes requested, unreviewed commits
    - remaining: stated in the ticket but not yet evidenced in code
-   - blockers: something explicitly preventing progress
+   - blockers: something explicitly preventing progress on the engineering work.
+     Never the agent's own setup. "GitHub could not be checked" is a limit on what this
+     report knows, not something the developer is blocked on — a reader would act on it
+     by chasing the wrong problem. The same goes for nextSteps and remaining.
 4. If the evidence does not answer a question, write "Unknown". Do not guess.
 5. The CONTEXT GAPS section lists what the evidence does not cover. Treat those as real limits on
    what you can claim, and reflect the important ones in `notes`.

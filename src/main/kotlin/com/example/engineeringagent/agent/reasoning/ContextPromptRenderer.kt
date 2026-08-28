@@ -1,6 +1,7 @@
 package com.example.engineeringagent.agent.reasoning
 
 import com.example.engineeringagent.domain.EngineeringContext
+import com.example.engineeringagent.domain.GapKind
 import com.example.engineeringagent.domain.MatchConfidence
 import org.springframework.stereotype.Component
 
@@ -108,12 +109,38 @@ class ContextPromptRenderer {
         if (review.awaitingReview) appendLine("At least one open pull request has no reviews yet.")
         appendLine()
 
+        val (operational, work) = context.gaps.partition { it.kind.operational }
+
         appendLine("# CONTEXT GAPS")
-        if (context.gaps.isEmpty()) {
+        if (work.isEmpty()) {
             appendLine("None. The evidence above is as complete as the sources allow.")
         } else {
-            context.gaps.forEach { appendLine("- ${it.detail}") }
+            work.forEach { appendLine("- ${it.detail}") }
         }
+
+        if (operational.isNotEmpty()) {
+            appendLine()
+            appendLine("# LIMITS OF THIS EVIDENCE")
+            appendLine("These describe what was not checked. They are not part of the work and must")
+            appendLine("never be reported as blockers, next steps, or remaining work.")
+            operational.forEach { appendLine("- ${limitText(it.kind)}") }
+        }
+    }
+
+    /**
+     * Neutral phrasing for an operational gap.
+     *
+     * The stored detail is written for whoever runs the agent and names environment variables and
+     * remediation steps. Given that text, a model dutifully reports "set GITHUB_TOKEN" as the
+     * developer's next step. The model is told what was not checked; it is not shown how to fix it,
+     * because the fix is not the developer's work.
+     */
+    private fun limitText(kind: GapKind): String = when (kind) {
+        GapKind.GITHUB_UNAVAILABLE ->
+            "Code activity could not be checked for this ticket. Absence of code below is unknown, not confirmed."
+        GapKind.DIFFS_EXCLUDED -> "File contents were not read; only paths and change counts are known."
+        GapKind.FILES_TRUNCATED -> "The list of changed files is truncated and may be incomplete."
+        else -> "Part of the evidence was not collected."
     }
 
     private companion object {

@@ -79,6 +79,17 @@ class SummaryValidator {
                 "as in progress is not evidenced by the code."
         }
 
+        // Last line of defence for the prompt rule above: a model that reports the agent's own
+        // setup as engineering work sends a reader chasing the wrong problem, and a stand-up line
+        // saying "blocked on GitHub configuration" is worse than one that says nothing.
+        val stated = listOf("blockers", "nextSteps", "remaining").associateWith { strings(raw, it) }
+        val kept = stated.mapValues { (_, items) -> items.withoutOperationalNoise() }
+        val trimmed = stated.keys.filter { kept.getValue(it).size < stated.getValue(it).size }
+        if (trimmed.isNotEmpty()) {
+            log.warn("Dropped setup-related item(s) from {} for {}", trimmed, context.ticketKey)
+            corrections += "Removed item(s) describing this agent's own configuration rather than the work."
+        }
+
         val notes = strings(raw, "notes") + corrections + carriedGaps(context)
 
         return DailyWorkSummary(
@@ -86,9 +97,9 @@ class SummaryValidator {
             summary = summaryText,
             completed = completed,
             inProgress = inProgress,
-            remaining = strings(raw, "remaining"),
-            blockers = strings(raw, "blockers"),
-            nextSteps = strings(raw, "nextSteps"),
+            remaining = kept.getValue("remaining"),
+            blockers = kept.getValue("blockers"),
+            nextSteps = kept.getValue("nextSteps"),
             statusConsistency = statusConsistency(raw),
             confidence = confidence,
             notes = notes.distinct(),
@@ -122,8 +133,23 @@ class SummaryValidator {
         runCatching { StatusConsistency.valueOf(raw.path("statusConsistency").asText("UNKNOWN")) }
             .getOrDefault(StatusConsistency.UNKNOWN)
 
+    /**
+     * Drops items that describe the agent's own configuration rather than the engineering work.
+     *
+     * Matching on the names of this system's own settings is narrow on purpose. A broader rule
+     * ("mentions GitHub") would delete legitimate statements like "waiting on a GitHub review".
+     */
+    private fun List<String>.withoutOperationalNoise(): List<String> =
+        filterNot { item -> OPERATIONAL_TERMS.any { item.contains(it, ignoreCase = true) } }
+
     private companion object {
         const val NO_EVIDENCE_CEILING = 0.3
+
+        /** Settings of this agent. None of them is ever a developer's blocker. */
+        val OPERATIONAL_TERMS = listOf(
+            "GITHUB_TOKEN", "GITHUB_ORG", "JIRA_API_TOKEN", "SLACK_BOT_TOKEN", "AI_API_KEY",
+            "is not configured", "not configured:", "configure github", "configure jira",
+        )
 
         /** Below this, an entry is a label rather than a statement. */
         const val MIN_STATEMENT_LENGTH = 12

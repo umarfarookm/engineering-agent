@@ -114,6 +114,40 @@ class SummaryValidatorTest {
         assertTrue(summary.completed.isEmpty(), "nothing was verified, so nothing can be claimed")
     }
 
+    /**
+     * Observed from qwen2.5:7b on a real ticket: given a gap that named GITHUB_TOKEN, it reported
+     * "Configure GitHub with the necessary tokens" as the developer's next step. Posted to a
+     * channel that reads as the developer being blocked on something that is not their work.
+     */
+    @Test
+    fun `drops blockers and next steps that describe the agent's own configuration`() {
+        val summary = validator.validate(
+            response(
+                "blockers" to listOf(
+                    "GitHub is not configured: set GITHUB_TOKEN and GITHUB_ORG",
+                    "Waiting on the platform team to publish the new client",
+                ),
+                "nextSteps" to listOf("Configure GitHub with the necessary tokens and organization"),
+            ),
+            context(gaps = listOf(ContextGap(GapKind.GITHUB_UNAVAILABLE, "GitHub is not configured."))),
+        )
+
+        assertEquals(listOf("Waiting on the platform team to publish the new client"), summary.blockers)
+        assertTrue(summary.nextSteps.isEmpty())
+        assertTrue(summary.notes.any { it.contains("own configuration") }, summary.notes.toString())
+    }
+
+    /** The rule must be narrow: a review on GitHub is real work, not tooling noise. */
+    @Test
+    fun `keeps a genuine blocker that happens to mention GitHub`() {
+        val summary = validator.validate(
+            response("blockers" to listOf("Waiting on a GitHub review from the platform team")),
+            context(),
+        )
+
+        assertEquals(listOf("Waiting on a GitHub review from the platform team"), summary.blockers)
+    }
+
     @Test
     fun `keeps completed work when a pull request confirms it`() {
         val summary = validator.validate(

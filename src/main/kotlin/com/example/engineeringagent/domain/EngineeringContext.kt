@@ -59,14 +59,23 @@ data class ReviewState(
 /** A specific thing the evidence does not cover, and why. */
 data class ContextGap(val kind: GapKind, val detail: String)
 
-enum class GapKind {
-    NO_GITHUB_ACTIVITY,
-    GITHUB_UNAVAILABLE,
-    UNCERTAIN_CODE_LINK,
-    NO_ACCEPTANCE_CRITERIA,
-    NO_DESCRIPTION,
-    DIFFS_EXCLUDED,
-    FILES_TRUNCATED,
+/**
+ * Why a piece of evidence is missing.
+ *
+ * [operational] separates two things a reader conflates at their peril: a gap in the *work* (no
+ * acceptance criteria were written, no code was found) from a gap in the *tooling* (this agent
+ * could not reach GitHub, or was configured not to fetch diffs). Both belong in the notes a human
+ * reads. Only the first may influence what the status says about the engineering, because
+ * "the agent lacks a GitHub token" is not something a developer is blocked on.
+ */
+enum class GapKind(val operational: Boolean) {
+    NO_GITHUB_ACTIVITY(operational = false),
+    UNCERTAIN_CODE_LINK(operational = false),
+    NO_ACCEPTANCE_CRITERIA(operational = false),
+    NO_DESCRIPTION(operational = false),
+    GITHUB_UNAVAILABLE(operational = true),
+    DIFFS_EXCLUDED(operational = true),
+    FILES_TRUNCATED(operational = true),
 }
 
 /** The day's contexts, one per active ticket. */
