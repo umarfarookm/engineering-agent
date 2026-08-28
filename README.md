@@ -187,6 +187,28 @@ Run the tests — they use recorded fixtures and never contact a real Jira insta
 ./gradlew test
 ```
 
+### Daily use without a scheduler
+
+n8n earns its keep on an always-on host. On a laptop the 07:00 cron is partly fiction: it needs
+Docker up, the service running, and the machine awake, and a scheduler that silently misses is
+worse than none. For daily use, run the same two endpoints from a terminal instead:
+
+```bash
+./scripts/standup.sh              # preview, ask, send on y
+./scripts/standup.sh --dry-run    # preview only, never sends
+./scripts/standup.sh --yes        # no prompt, for a real cron
+```
+
+It needs only the Spring service — no Docker, no n8n. The approval gate is the `[y/N]` prompt, and
+it sends the text it just showed you rather than regenerating it, for the same reason the workflow
+does: a rebuilt message is not the one you approved.
+
+`.env` fills in anything you have not already exported, so a one-off override works as expected:
+
+```bash
+AI_ENABLED=false ./scripts/standup.sh
+```
+
 ### Restarting after a reboot
 
 Nothing persists in the running processes, so a restart loses no state: the repository is on disk,
