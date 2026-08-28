@@ -64,8 +64,12 @@ class EngineeringReasoningService(
     }
 
     /**
-     * The schema Ollama constrains decoding to. Kept in code rather than a resource because it must
-     * stay in step with [DailyWorkSummary] — a drift between them is a runtime failure.
+     * The schema the provider constrains decoding to. Kept in code rather than a resource because
+     * it must stay in step with [DailyWorkSummary] — a drift between them is a runtime failure.
+     *
+     * Every property is listed in `required` and `additionalProperties` is false because OpenAI's
+     * strict mode rejects a schema that omits either. Ollama and Anthropic accept the same shape,
+     * so one schema serves all three rather than one per provider.
      */
     private fun schema(): JsonNode = objectMapper.readTree(
         """
@@ -84,7 +88,8 @@ class EngineeringReasoningService(
             "notes":       { "type": "array", "items": { "type": "string" } }
           },
           "required": ["ticketKey", "summary", "completed", "inProgress", "remaining",
-                       "blockers", "nextSteps", "statusConsistency", "confidence"]
+                       "blockers", "nextSteps", "statusConsistency", "confidence", "notes"],
+          "additionalProperties": false
         }
         """.trimIndent(),
     )

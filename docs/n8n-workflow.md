@@ -104,9 +104,10 @@ explicitly, so `docker-compose.yml` sets it.
 
 ## Timing
 
-A local model takes several minutes per ticket, so a three-ticket day runs roughly 15-20 minutes.
-The preview step therefore uses a 30-minute timeout, and the cron is set early enough that the
-draft is waiting when you start work.
+A local model takes several minutes per ticket on a CPU — a 7B model 10-15, a 3B model around 5 —
+so a four-ticket day can run for an hour. The preview step therefore uses a 90-minute timeout, and
+the cron is set early enough that the draft is waiting when you start work. Latency is cheap here
+precisely because nobody is watching the run.
 
 If that feels slow, `AI_ENABLED=false` returns a deterministic summary in seconds — factual, and
 duller.

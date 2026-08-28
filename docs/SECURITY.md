@@ -16,10 +16,28 @@ an external LLM provider. That single fact drives most of what follows.
 
 The default provider is **Ollama running locally**, which removes this risk rather than mitigating
 it: prompts never leave the machine, so there is no external processor to vet and no employer policy
-to satisfy. Everything below still applies, because the provider is replaceable and a future
-hosted model would reinstate every one of these concerns.
+to satisfy.
 
-Controls:
+The provider is a configuration value, so this is a decision you can reverse in either direction:
+
+| `AI_PROVIDER` | Where the prompt goes | API key |
+|---|---|---|
+| `ollama` (default) | this machine | none |
+| `anthropic` | Anthropic's API | `AI_API_KEY` |
+| `openai` | OpenAI, or any OpenAI-compatible endpoint at `AI_BASE_URL` | `AI_API_KEY` |
+
+**Switching to a hosted provider sends your employer's data to a third party.** The prompt contains
+ticket keys, titles, descriptions and comments, branch names, pull request titles, and changed file
+paths — and, if `AI_INCLUDE_DIFFS=true`, source code. Confirm your employer permits this before you
+switch. The service does not ask, but it does say so: startup logs a warning naming the provider and
+endpoint whenever reasoning happens off-machine, and refuses to start a hosted provider with no API
+key rather than silently falling back to something else.
+
+`LlmClient.isLocal` is the flag that carries this distinction through the code. It is false for both
+hosted providers, and false for an OpenAI-compatible endpoint even when that endpoint is in fact on
+localhost: for a URL the operator supplies, the safe assumption is that data leaves.
+
+The controls below apply to every provider, and matter most for the hosted ones:
 
 1. **Explicit and auditable.** The exact payload sent to the provider is assembled in one place
    (`EngineeringReasoningService`) and can be dumped for inspection in a local debug mode.

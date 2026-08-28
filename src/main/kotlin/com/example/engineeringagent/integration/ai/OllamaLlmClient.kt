@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 
@@ -21,9 +20,8 @@ import org.springframework.web.client.RestClientException
  * far more for small models than large ones — a 3B model asked politely for JSON will produce prose
  * about half the time, while one decoding under a schema cannot.
  */
-@Component
 class OllamaLlmClient(
-    private val ollamaRestClient: RestClient,
+    private val restClient: RestClient,
     private val properties: AiProperties,
     private val objectMapper: ObjectMapper,
 ) : LlmClient {
@@ -52,7 +50,7 @@ class OllamaLlmClient(
         }
 
         val response = try {
-            ollamaRestClient.post()
+            restClient.post()
                 .uri("/api/chat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)

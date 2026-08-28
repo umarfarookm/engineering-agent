@@ -34,7 +34,8 @@ class OllamaLlmClientTest {
         server = WireMockServer(WireMockConfiguration.options().dynamicPort())
         server.start()
         val properties = AiProperties(enabled = true, baseUrl = server.baseUrl(), model = "llama3.2:latest")
-        client = OllamaLlmClient(AiClientConfig().ollamaRestClient(properties), properties, objectMapper)
+        // Built through the real factory, so provider selection is exercised too.
+        client = AiClientConfig().llmClient(properties, objectMapper) as OllamaLlmClient
     }
 
     @AfterEach

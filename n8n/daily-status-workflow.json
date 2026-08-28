@@ -37,7 +37,7 @@
           ]
         },
         "options": {
-          "timeout": 1800000,
+          "timeout": 5400000,
           "response": {
             "response": {
               "neverError": false

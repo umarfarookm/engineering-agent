@@ -35,9 +35,12 @@ slack:
 ai:
   enabled: ${AI_ENABLED:false}
   provider: ${AI_PROVIDER:ollama}
-  model: ${AI_MODEL:llama3.2:latest}
-  base-url: ${AI_BASE_URL:http://localhost:11434}
-  timeout-seconds: ${AI_TIMEOUT_SECONDS:300}
+  model: ${AI_MODEL:qwen2.5:7b-instruct}
+  # Blank uses the provider's own endpoint.
+  base-url: ${AI_BASE_URL:}
+  api-key: ${AI_API_KEY:}
+  timeout-seconds: ${AI_TIMEOUT_SECONDS:1500}
+  max-tokens: ${AI_MAX_TOKENS:2000}
 
 context:
   max-files-per-ticket: ${CONTEXT_MAX_FILES:40}
