@@ -90,6 +90,9 @@ class SummaryValidator {
             corrections += "Removed item(s) describing this agent's own configuration rather than the work."
         }
 
+        // Resolved before `notes` is assembled: it can add a correction, and notes is a snapshot.
+        val consistency = statusConsistency(raw, context, corrections)
+
         val notes = strings(raw, "notes") + corrections + carriedGaps(context)
 
         return DailyWorkSummary(
@@ -100,7 +103,7 @@ class SummaryValidator {
             remaining = kept.getValue("remaining"),
             blockers = kept.getValue("blockers"),
             nextSteps = kept.getValue("nextSteps"),
-            statusConsistency = statusConsistency(raw),
+            statusConsistency = consistency,
             confidence = confidence,
             notes = notes.distinct(),
         )
@@ -129,9 +132,34 @@ class SummaryValidator {
             .filter { it.contains(' ') && it.length >= MIN_STATEMENT_LENGTH }
             .distinct()
 
-    private fun statusConsistency(raw: JsonNode): StatusConsistency =
-        runCatching { StatusConsistency.valueOf(raw.path("statusConsistency").asText("UNKNOWN")) }
+    /**
+     * Whether the Jira status matches the work.
+     *
+     * Judging this needs to know what the work was. When GitHub could not be reached that is
+     * exactly what is missing, so any verdict is guesswork however confidently stated — and unlike
+     * a missing pull request, a wrong consistency claim reads as a judgement about the developer.
+     *
+     * GitHub being checked and finding nothing is a different case, and is left alone: a ticket
+     * sitting In Progress with no code may genuinely be inconsistent, and saying so is useful.
+     */
+    private fun statusConsistency(
+        raw: JsonNode,
+        context: EngineeringContext,
+        corrections: MutableList<String>,
+    ): StatusConsistency {
+        val stated = runCatching { StatusConsistency.valueOf(raw.path("statusConsistency").asText("UNKNOWN")) }
             .getOrDefault(StatusConsistency.UNKNOWN)
+
+        if (context.activity.unavailableReason != null && stated != StatusConsistency.UNKNOWN) {
+            log.warn(
+                "Model judged status {} for {} without code evidence; recording UNKNOWN",
+                stated, context.ticketKey,
+            )
+            corrections += "Could not judge whether the Jira status matches the work: the code was never checked."
+            return StatusConsistency.UNKNOWN
+        }
+        return stated
+    }
 
     /**
      * Drops items that describe the agent's own configuration rather than the engineering work.

@@ -29,6 +29,7 @@ class SummaryValidatorTest {
         key: String = "ENG-267",
         matches: List<ActivityMatch> = emptyList(),
         gaps: List<ContextGap> = emptyList(),
+        gitHubUnavailable: String? = null,
     ) = EngineeringContext(
         ticketKey = key,
         issue = JiraIssue(
@@ -39,7 +40,7 @@ class SummaryValidatorTest {
         activity = TicketActivity(
             key,
             if (matches.isEmpty()) MatchConfidence.NO_MATCH else MatchConfidence.MATCHED,
-            matches, listOf(key),
+            matches, listOf(key), gitHubUnavailable,
         ),
         codeChanges = CodeChangeSummary(matches.size, 0, 0, 0, 0, emptyList(), 0, emptyList(), emptyList(), false),
         reviewState = ReviewState(0, 0, 0, 0, 0, false, emptyList()),
@@ -146,6 +147,33 @@ class SummaryValidatorTest {
         )
 
         assertEquals(listOf("Waiting on a GitHub review from the platform team"), summary.blockers)
+    }
+
+    /**
+     * Observed from qwen2.5:7b: it returned INCONSISTENT for a ticket whose code was never
+     * checked. A consistency verdict reads as a judgement about the developer, so stating one
+     * without the evidence to support it is the most costly kind of guess this system can make.
+     */
+    @Test
+    fun `will not judge status consistency when the code was never checked`() {
+        val summary = validator.validate(
+            response("statusConsistency" to "INCONSISTENT"),
+            context(gitHubUnavailable = "GitHub is not configured."),
+        )
+
+        assertEquals(StatusConsistency.UNKNOWN, summary.statusConsistency)
+        assertTrue(summary.notes.any { it.contains("never checked") }, summary.notes.toString())
+    }
+
+    /** Checked-and-found-nothing is knowable, and a verdict on it is worth keeping. */
+    @Test
+    fun `keeps a consistency verdict when GitHub was checked and found nothing`() {
+        val summary = validator.validate(
+            response("statusConsistency" to "INCONSISTENT"),
+            context(gaps = listOf(ContextGap(GapKind.NO_GITHUB_ACTIVITY, "No pull requests found."))),
+        )
+
+        assertEquals(StatusConsistency.INCONSISTENT, summary.statusConsistency)
     }
 
     @Test
