@@ -1,0 +1,10 @@
+{
+  "total_count": 1,
+  "items": [
+    {
+      "number": 28,
+      "title": "ENG-185: Upgrade to Spring Boot 4.1.0 and align dependencies",
+      "pull_request": { "url": "https://api.github.com/repos/acme/billing-service/pulls/28" }
+    }
+  ]
+}

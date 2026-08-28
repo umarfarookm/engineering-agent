@@ -1,0 +1,27 @@
+{
+  "display_information": {
+    "name": "Engineering Agent",
+    "description": "Posts my daily engineering status, assembled from Jira and GitHub.",
+    "background_color": "#2c2d30"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Engineering Agent",
+      "always_online": false
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "im:write",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "total_count": 1,
+  "items": [
+    {
+      "number": 50,
+      "title": "Feature/plt 3206 monthly email reports",
+      "pull_request": { "url": "https://api.github.com/repos/acme/payments-service/pulls/50" }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "total_count": 1,
+  "items": [
+    {
+      "number": 488,
+      "title": "Use TESTMO_TOKEN secret instead of hardcoded token",
+      "pull_request": { "url": "https://api.github.com/repos/acme/platform-monorepo/pulls/488" }
+    }
+  ]
+}

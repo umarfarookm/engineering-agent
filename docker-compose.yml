@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: engineering-agent-db
+    # Bound to loopback only: this holds company ticket data. See docs/SECURITY.md.
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-engineering_agent}
+      POSTGRES_USER: ${DATABASE_USERNAME:-engineering_agent}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-engineering_agent}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: engineering-agent-n8n
+    # Loopback only: n8n holds credentials for Jira, GitHub and Slack.
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      GENERIC_TIMEZONE: ${N8N_TIMEZONE:-Europe/Copenhagen}
+      TZ: ${N8N_TIMEZONE:-Europe/Copenhagen}
+      # The agent service runs on the host, not in this network.
+      AGENT_BASE_URL: http://host.docker.internal:8080
+      # One source of truth: the workflow authenticates with the same token the
+      # service checks, so there is no second copy to drift out of sync.
+      AGENT_API_TOKEN: ${API_AUTH_TOKEN}
+      SLACK_USER_ID: ${SLACK_USER_ID}
+      # Approval buttons link back to this address, opened in the browser on the host.
+      WEBHOOK_URL: http://localhost:5678
+      # The workflow reads its credentials from $env. Documented as the default, but n8n 2.x
+      # denies access unless this is set explicitly.
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      N8N_SECURE_COOKIE: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - n8n-data:/home/node/.n8n
+
+volumes:
+  postgres-data:
+  n8n-data:

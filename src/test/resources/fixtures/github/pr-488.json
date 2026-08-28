@@ -1,0 +1,14 @@
+{
+  "number": 488,
+  "title": "Use TESTMO_TOKEN secret instead of hardcoded token",
+  "body": "Replaces the hardcoded token with a repository secret.",
+  "state": "open",
+  "draft": false,
+  "merged_at": null,
+  "created_at": "2026-08-20T08:00:00Z",
+  "updated_at": "2026-08-21T09:10:00Z",
+  "html_url": "https://github.com/acme/platform-monorepo/pull/488",
+  "user": { "login": "octocat" },
+  "head": { "ref": "fix/testmo-token-secret" },
+  "base": { "ref": "master", "repo": { "full_name": "acme/platform-monorepo" } }
+}

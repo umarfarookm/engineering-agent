@@ -1,0 +1,30 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Gradle / build
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+bin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Slack CLI sample app scaffolding
+/engineering-agent/

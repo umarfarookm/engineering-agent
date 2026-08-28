@@ -1,0 +1,9 @@
+[
+  {
+    "filename": "src/main/kotlin/reports/EmailRetryPolicy.kt",
+    "status": "added",
+    "additions": 120,
+    "deletions": 0,
+    "patch": "@@ -0,0 +1,3 @@\n+class EmailRetryPolicy"
+  }
+]

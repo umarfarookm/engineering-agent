@@ -1,0 +1,23 @@
+{
+  "comments": [
+    {
+      "id": "10501",
+      "author": { "displayName": "Priya Raman" },
+      "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Blocked on the API key rotation, see " },
+              { "type": "inlineCard", "attrs": { "url": "https://example.com/ticket/9" } }
+            ]
+          }
+        ]
+      },
+      "created": "2026-08-22T08:00:00.000+0000",
+      "updated": "2026-08-22T08:00:00.000+0000"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+server:
+  port: ${SERVER_PORT:8080}
+  # Loopback by default. Binding wider requires API_AUTH_TOKEN; startup fails otherwise.
+  address: ${SERVER_ADDRESS:127.0.0.1}
+
+api:
+  security:
+    token: ${API_AUTH_TOKEN:}
+
+spring:
+  application:
+    name: engineering-agent
+  jackson:
+    default-property-inclusion: non_null
+
+jira:
+  base-url: ${JIRA_BASE_URL:}
+  email: ${JIRA_EMAIL:}
+  api-token: ${JIRA_API_TOKEN:}
+  in-progress-statuses: ${JIRA_IN_PROGRESS_STATUSES:In Progress,In Review,Code Review}
+  acceptance-criteria-field: ${JIRA_ACCEPTANCE_CRITERIA_FIELD:#{null}}
+
+github:
+  token: ${GITHUB_TOKEN:}
+  org: ${GITHUB_ORG:}
+  repos: ${GITHUB_REPOS:}
+  llm-excluded-repos: ${GITHUB_LLM_EXCLUDED_REPOS:}
+  include-diffs: ${AI_INCLUDE_DIFFS:false}
+
+slack:
+  bot-token: ${SLACK_BOT_TOKEN:}
+  channel-id: ${SLACK_CHANNEL_ID:}
+  user-id: ${SLACK_USER_ID:}
+
+ai:
+  enabled: ${AI_ENABLED:false}
+  provider: ${AI_PROVIDER:ollama}
+  model: ${AI_MODEL:llama3.2:latest}
+  base-url: ${AI_BASE_URL:http://localhost:11434}
+  timeout-seconds: ${AI_TIMEOUT_SECONDS:300}
+
+context:
+  max-files-per-ticket: ${CONTEXT_MAX_FILES:40}
+  max-commit-messages: ${CONTEXT_MAX_COMMITS:30}
+
+logging:
+  level:
+    root: INFO
+    com.example.engineeringagent: INFO
+    # Debug-level HTTP clients dump Authorization headers. Keep them quiet.
+    org.springframework.web.client: WARN

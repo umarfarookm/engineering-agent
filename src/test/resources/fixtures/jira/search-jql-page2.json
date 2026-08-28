@@ -1,0 +1,21 @@
+{
+  "issues": [
+    {
+      "id": "10301",
+      "key": "ENG-301",
+      "fields": {
+        "summary": "Fix timezone handling on trip export",
+        "status": { "name": "Code Review", "statusCategory": { "name": "In Progress" } },
+        "assignee": null,
+        "priority": null,
+        "labels": [],
+        "issuetype": { "name": "Bug" },
+        "created": "2026-08-20T11:00:00.000+0000",
+        "updated": "2026-08-23T16:45:00.000+0000",
+        "description": null,
+        "issuelinks": []
+      }
+    }
+  ],
+  "isLast": true
+}

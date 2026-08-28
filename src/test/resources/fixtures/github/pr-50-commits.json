@@ -1,0 +1,11 @@
+[
+  {
+    "sha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "html_url": "https://github.com/acme/payments-service/commit/a1b2c3d",
+    "commit": {
+      "message": "PLT-3206: add retry policy for report emails",
+      "author": { "name": "Alex Rivera", "date": "2025-07-02T10:00:00Z" }
+    },
+    "author": { "login": "octocat" }
+  }
+]
